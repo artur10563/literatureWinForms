@@ -29,7 +29,6 @@ namespace Literature.Forms.Data.Services
 				return result.ToList();
 			}
 		}
-
 		public async Task<Composition> GetByIdWithGenres(int id)
 		{
 			using (IDbConnection connection = new SqlConnection(ConnectionHelper.CnnVal("LiteratureDB")))
@@ -65,7 +64,6 @@ namespace Literature.Forms.Data.Services
 				return resComposition;
 			}
 		}
-
 		public async Task<int> CreateAsync(Composition composition)
 		{
 			using (IDbConnection connection = new SqlConnection(ConnectionHelper.CnnVal("LiteratureDB")))

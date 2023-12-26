@@ -20,6 +20,7 @@ namespace Literature.Forms
 
 		private static Collection selectedCollection;
 		private static Composition selectedComposition;
+		private static List<Composition> allCompositions;
 
 		public GuestForm()
 		{
@@ -32,26 +33,40 @@ namespace Literature.Forms
 
 			collectionService = new CollectionService();
 			compositionService = new CompositionService();
+			allCompositions = await compositionService.GetAll();
 
 			CollectionList.DataSource = await collectionService.GetAll();
 			CollectionList.DisplayMember = "Name";
 			CompositionList.DisplayMember = "Name";
+
+			CollectionList.SelectedItem = null;
+			CompositionList.SelectedItem = null;
+	
 		}
 
 		private async void CollectionList_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			if (CollectionList.SelectedItem == null) return;
+			var compositions = new List<Composition>();
 
-			var id = ((Collection)CollectionList.SelectedItem).Id;
-			selectedCollection = await collectionService.GetByIdWithCompositions(id);
+			if (CollectionList.SelectedItem == null)
+			{
+				compositions = await compositionService.GetAll();
+			}
+			else
+			{
+				var id = ((Collection)CollectionList.SelectedItem).Id;
+				selectedCollection = await collectionService.GetByIdWithCompositions(id);
+				compositions = selectedCollection.Compositions.ToList();
+			}
 
-			CompositionList.DataSource = selectedCollection.Compositions;
-
+			CompositionList.DataSource = compositions;
+			CompositionList.SelectedItem = null;
 		}
 
 		private async void CompositionList_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			if (CompositionList.SelectedItem == null) return;
+
 
 			var id = ((Composition)CompositionList.SelectedItem).Id;
 			selectedComposition = await compositionService.GetByIdWithGenres(id);
@@ -66,6 +81,22 @@ namespace Literature.Forms
 			LanguageLabel.Text = selectedComposition.Language?.Name;
 			CompositionText.Text = selectedComposition?.Text;
 			GenresLabel.Text = genresText;
+
+		}
+
+		private async void searchBox_TextChanged(object sender, EventArgs e)
+		{
+			CollectionList.SelectedItem = null;
+			var text = searchBox.Text.ToLower();
+
+			CompositionList.DataSource =
+				allCompositions.Where(
+					c =>
+					c.Name.ToLower().Contains(text) ||
+					c.Author.FirstName.ToLower().Contains(text) ||
+					c.Author.LastName.ToLower().Contains(text)
+					)
+				.ToList();
 		}
 	}
 }
